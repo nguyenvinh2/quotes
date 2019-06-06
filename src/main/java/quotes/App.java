@@ -3,12 +3,35 @@
  */
 package quotes;
 
+import com.google.gson.Gson;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.Random;
+import java.util.Scanner;
+
 public class App {
-    public String getGreeting() {
-        return "Hello world.";
-    }
 
     public static void main(String[] args) {
-        System.out.println(new App().getGreeting());
+        String path = "src/main/resources/recentquotes.json";
+        System.out.println(getQuote(path));
+    }
+
+    public static String getQuote(String path) {
+        Quotes[] quotes = getAllQuotes(path);
+        Random rand= new Random();
+        int quoteNumber = rand.nextInt(quotes.length);
+        String quote = quotes[quoteNumber].getText() + " - " + quotes[quoteNumber].getAuthor();
+        return quote;
+    }
+
+    public static Quotes[] getAllQuotes(String path) {
+        String quotesText = null;
+        try {
+            quotesText = new Scanner(new File(path)).useDelimiter("\\A").next();
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
+        Quotes[] quotes =  new Gson().fromJson(quotesText, Quotes[].class);
+        return quotes;
     }
 }

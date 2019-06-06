@@ -4,11 +4,38 @@
 package quotes;
 
 import org.junit.Test;
+
+import java.io.FileNotFoundException;
+import java.util.ArrayList;
+import java.util.List;
+
 import static org.junit.Assert.*;
 
 public class AppTest {
-    @Test public void testAppHasAGreeting() {
-        App classUnderTest = new App();
-        assertNotNull("app should have a greeting", classUnderTest.getGreeting());
+    @Test public void getFirstQuoteTest() {
+        String path = "src/main/resources/recentquotes.json";
+        Quotes[] result = App.getAllQuotes(path);
+        List<String> expected = new ArrayList<>();
+        expected.add("attributed-no-source");
+        assertEquals(expected, result[0].getTags());
+        assertEquals("Marilyn Monroe", result[0].getAuthor());
+        assertEquals("18651 likes", result[0].getLikes());
+        assertEquals(" “I am good, but not an angel. I do sin, but I am not the devil. I am just a small girl in a big world trying to find someone to love.” ", result[0].getText());
+    }
+
+    @Test public void getLastQuoteTest() {
+        String path = "src/main/resources/recentquotes.json";
+        Quotes[] result = App.getAllQuotes(path);
+        List<String> expected = new ArrayList<>();
+        assertEquals(expected,result[result.length-1].getTags());
+        assertEquals("办理明尼苏达大学双城分校毕业证[学历认证University of Minnesota Twin Cities", result[result.length-1].getAuthor());
+        assertEquals("0 likes", result[result.length-1].getLikes());
+        assertEquals(" “办理明尼苏达大学双城分校毕业证|||||||微信Q：930083900<<<<<;办理毕业证、办理成绩单、办理教育部学历认证、为留学生办理学历文凭、使馆留学回国人员证明、录取通知书、Offer、在读证明、雅思托福成绩单、网上存档永久可查！专业面向“英国、加拿大、意大利，澳洲、新西兰、美国 ”等国的学历学位真实教育部认证、使馆认证。专业办理国外各高校的毕业证，成绩单，长期专业为留学生解决毕业难的问题，【实体公司，值得信赖】", result[result.length-1].getText());
+    }
+
+    @Test public void getQuoteTypeTest() {
+        String path = "src/main/resources/recentquotes.json";
+        String result = App.getQuote(path);
+        assertTrue(result instanceof String);
     }
 }
