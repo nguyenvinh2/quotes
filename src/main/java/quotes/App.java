@@ -4,34 +4,79 @@
 package quotes;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
+import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.util.Random;
-import java.util.Scanner;
+import java.io.FileWriter;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.*;
 
 public class App {
 
     public static void main(String[] args) {
-        String path = "src/main/resources/recentquotes.json";
-        System.out.println(getQuote(path));
+        String site = "http://api.forismatic.com/api/1.0/?method=getQuote&format=json&lang=en";
+        System.out.println(requestQuote(site));
     }
 
-    public static String getQuote(String path) {
-        Quotes[] quotes = getAllQuotes(path);
-        Random rand= new Random();
+    public static String getLocalQuote(String path) {
+        Quote[] quotes = getAllLocalQuotes(path);
+        Random rand = new Random();
         int quoteNumber = rand.nextInt(quotes.length);
         String quote = quotes[quoteNumber].getText() + " - " + quotes[quoteNumber].getAuthor();
         return quote;
     }
 
-    public static Quotes[] getAllQuotes(String path) {
+    public static Quote[] getAllLocalQuotes(String path) {
         String quotesText = null;
         try {
             quotesText = new Scanner(new File(path)).useDelimiter("\\A").next();
-        } catch(Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
-        Quotes[] quotes =  new Gson().fromJson(quotesText, Quotes[].class);
+        Quote[] quotes = new Gson().fromJson(quotesText, Quote[].class);
         return quotes;
+    }
+
+    public static String requestQuote(String webAddress) {
+        String path = "src/main/resources/recentquotes.json";
+        try {
+            String inputLine;
+            URL url = new URL(webAddress);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("GET");
+            connection.setRequestProperty("Content-Type", "application/json");
+            BufferedReader response = new BufferedReader(
+                    new InputStreamReader(connection.getInputStream()));
+            StringBuffer contentData = new StringBuffer();
+            while ((inputLine = response.readLine()) != null) {
+                contentData.append(inputLine);
+            }
+            response.close();
+            connection.disconnect();
+            Quote onlineQuote = new Gson().fromJson(contentData.toString(), Quote.class);
+            Quote convertQuote = new Quote(onlineQuote.getQuoteText(), onlineQuote.getQuoteAuthor());
+            addQuoteToFile(convertQuote, path);
+            return convertQuote.getText() + " - " + convertQuote.getAuthor();
+        } catch (Exception e) {
+            System.out.println("Unable to retrieve online quote because of: " + e.getMessage() + "; switching to local cache...");
+        }
+        return getLocalQuote(path);
+    }
+
+    public static void addQuoteToFile(Quote quote, String path) {
+        Quote[] localQuotes = getAllLocalQuotes(path);
+        ArrayList<Quote> cloneQuotes = new ArrayList<>(Arrays.asList(localQuotes));
+        cloneQuotes.add(quote);
+        try {
+            Gson gson = new GsonBuilder().setPrettyPrinting().create();
+            FileWriter toJson = new FileWriter(path);
+            gson.toJson(cloneQuotes, toJson);
+            toJson.close();
+        } catch(Exception e) {
+            System.out.println("Error: cannot write to file: " + e.getMessage());
+        }
     }
 }
