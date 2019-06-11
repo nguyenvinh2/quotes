@@ -14,7 +14,7 @@ import static org.junit.Assert.*;
 public class AppTest {
     @Test public void getFirstQuoteTest() {
         String path = "src/main/resources/recentquotes.json";
-        Quotes[] result = App.getAllQuotes(path);
+        Quote[] result = App.getAllLocalQuotes(path);
         List<String> expected = new ArrayList<>();
         expected.add("attributed-no-source");
         assertEquals(expected, result[0].getTags());
@@ -25,7 +25,7 @@ public class AppTest {
 
     @Test public void getLastQuoteTest() {
         String path = "src/main/resources/recentquotes.json";
-        Quotes[] result = App.getAllQuotes(path);
+        Quote[] result = App.getAllLocalQuotes(path);
         List<String> expected = new ArrayList<>();
         assertEquals(expected,result[result.length-1].getTags());
         assertEquals("办理明尼苏达大学双城分校毕业证[学历认证University of Minnesota Twin Cities", result[result.length-1].getAuthor());
@@ -35,7 +35,7 @@ public class AppTest {
 
     @Test public void getQuoteTypeTest() {
         String path = "src/main/resources/recentquotes.json";
-        String result = App.getQuote(path);
+        String result = App.getLocalQuote(path);
         assertTrue(result instanceof String);
     }
 }
