@@ -2,7 +2,14 @@
 
 ## Introduction
 
-This application parses over a JSON file of quote objects and returns a quote along with the author
+This application has two functions:
+
+1. retrieve a random quote using a GET request from
+
+        http://api.forismatic.com/api/1.0/?method=getQuote&format=json&lang=en
+   and prints it to the console after adding the quote to the json file located [here](./src/main/resources/recentquotes.json)
+
+2. in the event of a failed GET request, parses over a JSON file of quote objects and returns a quote along with the author
 
 ## Instructions
 

@@ -3,16 +3,22 @@
  */
 package quotes;
 
+import com.google.gson.Gson;
 import org.junit.Test;
 
+import java.io.File;
 import java.io.FileNotFoundException;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
 
 import static org.junit.Assert.*;
 
 public class AppTest {
-    @Test public void getFirstQuoteTest() {
+    @Test
+    public void getFirstQuoteTest() {
         String path = "src/main/resources/recentquotes.json";
         Quote[] result = App.getAllLocalQuotes(path);
         List<String> expected = new ArrayList<>();
@@ -23,19 +29,66 @@ public class AppTest {
         assertEquals(" “I am good, but not an angel. I do sin, but I am not the devil. I am just a small girl in a big world trying to find someone to love.” ", result[0].getText());
     }
 
-    @Test public void getLastQuoteTest() {
-        String path = "src/main/resources/recentquotes.json";
-        Quote[] result = App.getAllLocalQuotes(path);
-        List<String> expected = new ArrayList<>();
-        assertEquals(expected,result[result.length-1].getTags());
-        assertEquals("办理明尼苏达大学双城分校毕业证[学历认证University of Minnesota Twin Cities", result[result.length-1].getAuthor());
-        assertEquals("0 likes", result[result.length-1].getLikes());
-        assertEquals(" “办理明尼苏达大学双城分校毕业证|||||||微信Q：930083900<<<<<;办理毕业证、办理成绩单、办理教育部学历认证、为留学生办理学历文凭、使馆留学回国人员证明、录取通知书、Offer、在读证明、雅思托福成绩单、网上存档永久可查！专业面向“英国、加拿大、意大利，澳洲、新西兰、美国 ”等国的学历学位真实教育部认证、使馆认证。专业办理国外各高校的毕业证，成绩单，长期专业为留学生解决毕业难的问题，【实体公司，值得信赖】", result[result.length-1].getText());
-    }
 
-    @Test public void getQuoteTypeTest() {
+    @Test
+    public void getQuoteTypeTest() {
         String path = "src/main/resources/recentquotes.json";
         String result = App.getLocalQuote(path);
         assertTrue(result instanceof String);
+    }
+
+    @Test
+    public void requestQuoteTest() {
+        String site = "http://api.forismatic.com/api/1.0/?method=getQuote&format=json&lang=en";
+        String result = App.requestQuote(site);
+        assertTrue(result instanceof String);
+
+    }
+
+    @Test
+    public void requestQuoteAddLocallyTest() {
+        String site = "http://api.forismatic.com/api/1.0/?method=getQuote&format=json&lang=en";
+        String resultQuote = App.requestQuote(site);
+        Quote[] expected = new Quote[]{};
+        String path = "src/main/resources/recentquotes.json";
+        try {
+            expected = new Gson().fromJson(new Scanner(new File(path)).useDelimiter("\\A").next(), Quote[].class);
+        } catch(Exception e) {
+
+        }
+        String expectedLine = expected[expected.length -1].getText() + " - " + expected[expected.length-1].getAuthor();
+        assertEquals(expectedLine, resultQuote);
+    }
+
+    @Test
+    public void httpConnectionTestSuccess() {
+        String site = "http://api.forismatic.com/api/1.0/?method=getQuote&format=json&lang=en";
+        int code = 0;
+        try {
+            URL url = new URL(site);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("GET");
+            connection.setRequestProperty("Content-Type", "application/json");
+            connection.connect();
+            code = connection.getResponseCode();
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
+        assertEquals(200, code);
+    }
+
+    @Test
+    public void addQuoteToFileTest() {
+        Quote[] result = new Quote[]{};
+        String path = "src/main/resources/recentquotes.json";
+        Quote quote = new Quote("Vinh says this test sucks", "Vinh");
+        App.addQuoteToFile(quote, path);
+        try {
+            result = new Gson().fromJson(new Scanner(new File(path)).useDelimiter("\\A").next(), Quote[].class);
+        } catch(Exception e) {
+
+        }
+        assertEquals(quote.getText(), result[result.length-1].getText());
+        assertEquals(quote.getAuthor(), result[result.length-1].getAuthor());
     }
 }
